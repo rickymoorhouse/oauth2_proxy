@@ -231,17 +231,19 @@ func (p *GitHubProvider) hasOrgAndTeam(accessToken string) (bool, error) {
 	var presentTeams []string
 	for _, team := range teams {
 		presentOrgs[team.Org.Login] = true
-		if p.Org == team.Org.Login {
-			hasOrg = true
-			ts := strings.Split(p.Team, ",")
+		ts := strings.Split(p.Team, ",")
 			for _, t := range ts {
-				if t == team.Slug {
+				teamorg := strings.Split(t, "/")
+				if (teamorg[0] == team.Org.Login) && (teamorg[1] == team.Slug) {
 					logger.Printf("Found Github Organization:%q Team:%q (Name:%q)", team.Org.Login, team.Slug, team.Name)
 					return true, nil
 				}
 			}
-			presentTeams = append(presentTeams, team.Slug)
+
+		if p.Org == team.Org.Login {
+			hasOrg = true
 		}
+		presentTeams = append(presentTeams, team.Org.Login + "/" + team.Slug)
 	}
 	if hasOrg {
 		logger.Printf("Missing Team:%q from Org:%q in teams: %v", p.Team, p.Org, presentTeams)
